@@ -1,0 +1,166 @@
+# ============================================================
+# Brighter Super — Purview Landing Zone
+# Deploy Pipeline (Terraform)
+# Manual trigger only — applies to production after PR approval
+# ============================================================
+
+trigger: none
+
+parameters:
+  - name: confirmDeploy
+    displayName: 'Type DEPLOY to confirm deployment to production'
+    type: string
+    default: ''
+
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  serviceConnectionName: 'sc-bsup-purview-prod'
+  tfWorkingDir: '$(System.DefaultWorkingDirectory)/infra'
+  ARM_USE_OIDC: true
+
+stages:
+  - stage: Guard
+    displayName: 'Deployment Guard'
+    jobs:
+      - job: CheckConfirmation
+        displayName: 'Verify manual confirmation'
+        steps:
+          - script: |
+              if [ "${{ parameters.confirmDeploy }}" != "DEPLOY" ]; then
+                echo "##vso[task.logissue type=error]Deployment not confirmed. Set confirmDeploy to DEPLOY to proceed."
+                exit 1
+              fi
+              echo "Deployment confirmed — proceeding."
+            displayName: 'Check confirmation token'
+
+  - stage: Validate
+    displayName: 'Terraform Validate'
+    dependsOn: Guard
+    jobs:
+      - job: Validate
+        steps:
+          - checkout: self
+          - task: AzureCLI@2
+            displayName: 'terraform fmt + validate'
+            inputs:
+              azureSubscription: $(serviceConnectionName)
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                export ARM_CLIENT_ID=$servicePrincipalId
+                export ARM_OIDC_TOKEN=$idToken
+                export ARM_TENANT_ID=$tenantId
+                export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+                export ARM_USE_OIDC=true
+
+                if ! command -v terraform &> /dev/null; then
+                  curl -fsSL https://releases.hashicorp.com/terraform/1.9.0/terraform_1.9.0_linux_amd64.zip -o tf.zip
+                  unzip tf.zip && sudo mv terraform /usr/local/bin/
+                fi
+
+                cd $(tfWorkingDir)
+                terraform fmt -check -recursive
+                terraform init -backend=false
+                terraform validate
+
+  - stage: Plan
+    displayName: 'Terraform Plan'
+    dependsOn: Validate
+    jobs:
+      - job: Plan
+        steps:
+          - checkout: self
+          - task: AzureCLI@2
+            displayName: 'terraform init + plan'
+            inputs:
+              azureSubscription: $(serviceConnectionName)
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                export ARM_CLIENT_ID=$servicePrincipalId
+                export ARM_OIDC_TOKEN=$idToken
+                export ARM_TENANT_ID=$tenantId
+                export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+                export ARM_USE_OIDC=true
+
+                if ! command -v terraform &> /dev/null; then
+                  curl -fsSL https://releases.hashicorp.com/terraform/1.9.0/terraform_1.9.0_linux_amd64.zip -o tf.zip
+                  unzip tf.zip && sudo mv terraform /usr/local/bin/
+                fi
+
+                cd $(tfWorkingDir)
+                terraform init
+                terraform plan -var-file=terraform.tfvars -out=tfplan 2>&1 | tee plan-output.txt
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish plan artifact'
+            inputs:
+              targetPath: '$(tfWorkingDir)/tfplan'
+              artifact: 'terraform-plan'
+              publishLocation: 'pipeline'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish plan output'
+            inputs:
+              targetPath: '$(tfWorkingDir)/plan-output.txt'
+              artifact: 'terraform-plan-output'
+              publishLocation: 'pipeline'
+
+  - stage: Apply
+    displayName: 'Terraform Apply'
+    dependsOn: Plan
+    jobs:
+      - deployment: ApplyPurviewLandingZone
+        displayName: 'terraform apply'
+        # Manual approval gate configured in the purview-prod environment
+        environment: 'purview-prod'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: DownloadPipelineArtifact@2
+                  displayName: 'Download plan artifact'
+                  inputs:
+                    artifact: 'terraform-plan'
+                    path: '$(tfWorkingDir)'
+
+                - task: AzureCLI@2
+                  displayName: 'terraform apply'
+                  inputs:
+                    azureSubscription: $(serviceConnectionName)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      export ARM_CLIENT_ID=$servicePrincipalId
+                      export ARM_OIDC_TOKEN=$idToken
+                      export ARM_TENANT_ID=$tenantId
+                      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+                      export ARM_USE_OIDC=true
+
+                      if ! command -v terraform &> /dev/null; then
+                        curl -fsSL https://releases.hashicorp.com/terraform/1.9.0/terraform_1.9.0_linux_amd64.zip -o tf.zip
+                        unzip tf.zip && sudo mv terraform /usr/local/bin/
+                      fi
+
+                      cd $(tfWorkingDir)
+                      terraform init
+                      terraform apply -auto-approve tfplan 2>&1 | tee apply-output.txt
+
+                      echo "--- Terraform Outputs ---"
+                      terraform output
+
+                - task: PublishPipelineArtifact@1
+                  displayName: 'Publish apply output'
+                  inputs:
+                    targetPath: '$(tfWorkingDir)/apply-output.txt'
+                    artifact: 'terraform-apply-output'
+                    publishLocation: 'pipeline'
