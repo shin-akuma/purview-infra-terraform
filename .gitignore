@@ -1,2 +1,5 @@
 # Ignore PDF documents
 *.pdf
+
+# Ignore local VS Code workspace settings
+.vscode/
