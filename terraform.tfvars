@@ -30,6 +30,11 @@ create_private_dns_zones = true
 # Only required when create_private_dns_zones = false
 existing_private_dns_zone_resource_group_name = ""
 
+# Managed Private Endpoints — enable if data sources block public access
+create_managed_private_endpoints = false
+enable_adls_managed_endpoint      = false
+enable_databricks_managed_endpoint = false
+
 monthly_budget_amount = 2000
 
 # First day of the current deployment month — update when redeploying

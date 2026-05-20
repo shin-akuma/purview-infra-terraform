@@ -32,6 +32,7 @@ The configuration provisions and configures:
 - `storage.tf`: Diagnostic storage account.
 - `private_dns.tf`: private DNS zones and links.
 - `private_endpoints.tf`: all private endpoints.
+- `managed_private_endpoints.tf`: managed private endpoints from Purview to data sources (optional).
 - `rbac.tf`: role assignments for the Purview managed identity.
 - `diagnostics.tf`: monitor diagnostic settings.
 - `cost_alerts.tf`: budget and threshold notifications.
@@ -76,6 +77,9 @@ Optional/conditional:
 - `budget_start_date`
 - `soft_delete_retention_days`
 - `tags`
+- `create_managed_private_endpoints` (default `false`; enables managed private endpoints from Purview to data sources)
+- `enable_adls_managed_endpoint` (default `false`; creates managed endpoint to ADLS)
+- `enable_databricks_managed_endpoint` (default `false`; creates managed endpoint to Databricks)
 
 ## Configure Values
 
@@ -156,6 +160,42 @@ terraform output
 5. Private DNS behavior depends on `create_private_dns_zones`:
 	- `true`: zones are created in this deployment resource group.
 	- `false`: zones are read from `existing_private_dns_zone_resource_group_name`.
+6. **Network access to data sources:** RBAC role assignment alone is insufficient if data sources (ADLS, Databricks) have public network access disabled. See "Managed Private Endpoints" below.
+
+## Managed Private Endpoints
+
+If your ADLS storage account or Databricks workspace blocks public access, Purview cannot scan them with RBAC roles alone. You have three options:
+
+### Option 1: Managed Private Endpoints (Recommended for same-subscription sources)
+
+Purview initiates private endpoint requests to your data sources. The target resources must approve the connection.
+
+**Enable in `terraform.tfvars`:**
+```hcl
+create_managed_private_endpoints = true
+enable_adls_managed_endpoint     = true
+enable_databricks_managed_endpoint = true
+```
+
+**What happens:**
+- Terraform uses `az purview` CLI commands to create managed private endpoint requests.
+- Connections appear in the data source's "Private endpoint connections" blade as "Pending".
+- The subscription owner of the data source must approve them.
+- Once approved, Purview scans over the private link without internet exposure.
+
+**Post-deployment approval:**
+1. Go to ADLS → Networking → Private endpoint connections.
+2. Find the pending connection from Purview.
+3. Click Approve.
+4. Repeat for Databricks if enabled.
+
+### Option 2: Network Rules on Data Sources
+
+Allow Purview's managed IP or the "AzureServices" service endpoint on the data source's firewall rules. Less restrictive than Option 1.
+
+### Option 3: Self-Hosted Integration Runtime
+
+Deploy an IR in a network that can reach locked-down data sources. Purview submits scans to the IR instead of reaching directly.
 
 ## Post-Deployment Validation Checklist
 
@@ -166,3 +206,5 @@ terraform output
 5. Confirm Purview diagnostic logs are flowing to Log Analytics/Storage.
 6. Confirm budget appears with 80% actual, 90% forecast, and 100% actual notifications.
 7. Confirm RBAC assignments exist for the Purview managed identity at expected scopes.
+8. **If managed private endpoints enabled:** Check data source "Private endpoint connections" and approve pending requests.
+9. **If data sources blocked public access:** Confirm managed endpoints or network rules are in place before starting scans.
