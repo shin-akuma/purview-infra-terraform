@@ -34,6 +34,3 @@ provider "azurerm" {
     }
   }
 }
-
-# Used for tenant_id in Key Vault and for role assignment uniqueness
-data "azurerm_client_config" "current" {}

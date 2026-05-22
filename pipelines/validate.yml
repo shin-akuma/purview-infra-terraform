@@ -109,7 +109,7 @@ stages:
                 fi
 
                 terraform init
-                terraform plan -var-file=terraform.tfvars -out=tfplan 2>&1 | tee plan-output.txt
+                terraform plan -out=tfplan 2>&1 | tee plan-output.txt
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish plan output'

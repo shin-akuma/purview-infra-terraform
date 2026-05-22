@@ -23,18 +23,18 @@ variable "location" {
   default     = "australiaeast"
 }
 
+variable "naming_prefixes" {
+  description = "Ordered prefixes passed to the naming conventions module"
+  type        = list(string)
+}
+
+variable "naming_suffixes" {
+  description = "Ordered suffixes passed to the naming conventions module"
+  type        = list(string)
+}
+
 variable "purview_account_name" {
   description = "Name for the Purview account — must be globally unique"
-  type        = string
-}
-
-variable "key_vault_name" {
-  description = "Name for the Key Vault — must be globally unique"
-  type        = string
-}
-
-variable "diagnostic_storage_account_name" {
-  description = "Name for the diagnostic logs storage account — must be globally unique (3-24 lowercase alphanumeric)"
   type        = string
 }
 
@@ -61,6 +61,24 @@ variable "adls_storage_account_resource_id" {
 variable "databricks_workspace_resource_id" {
   description = "Resource ID of the existing Databricks workspace that Purview will scan"
   type        = string
+}
+
+variable "create_managed_private_endpoints" {
+  description = "Whether to create managed private endpoints from Purview to data sources"
+  type        = bool
+  default     = false
+}
+
+variable "enable_adls_managed_endpoint" {
+  description = "Create a managed private endpoint from Purview to ADLS Gen2 storage"
+  type        = bool
+  default     = false
+}
+
+variable "enable_databricks_managed_endpoint" {
+  description = "Create a managed private endpoint from Purview to Databricks workspace"
+  type        = bool
+  default     = false
 }
 
 variable "create_private_dns_zones" {
@@ -103,10 +121,10 @@ variable "tags" {
   description = "Tags applied to all resources"
   type        = map(string)
   default = {
-    environment  = "prod"
-    project      = "brighter-super-purview"
-    managed_by   = "arinco"
-    cost_center  = "data-governance"
-    work_order   = "brighter-super-data-governance-implementation"
+    environment = "prod"
+    project     = "brighter-super-purview"
+    managed_by  = "arinco"
+    cost_center = "data-governance"
+    work_order  = "brighter-super-data-governance-implementation"
   }
 }
