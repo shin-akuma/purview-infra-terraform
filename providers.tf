@@ -16,7 +16,7 @@ terraform {
   #   resource_group_name  = "rg-terraform-state"
   #   storage_account_name = "stterraformstatebsup"
   #   container_name       = "tfstate"
-  #   key                  = "brighter-super/purview.tfstate"
+  #   key                  = "jason-super/purview.tfstate"
   # }
 }
 

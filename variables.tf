@@ -122,9 +122,9 @@ variable "tags" {
   type        = map(string)
   default = {
     environment = "prod"
-    project     = "brighter-super-purview"
+    project     = "jason-super-purview"
     managed_by  = "arinco"
     cost_center = "data-governance"
-    work_order  = "brighter-super-data-governance-implementation"
+    work_order  = "jason-super-data-governance-implementation"
   }
 }
