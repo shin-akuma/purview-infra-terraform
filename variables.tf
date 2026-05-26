@@ -93,6 +93,13 @@ variable "existing_private_dns_zone_resource_group_name" {
   default     = ""
 }
 
+variable "existing_private_dns_zone_subscription_id" {
+  description = "Subscription ID containing existing Private DNS Zones when they live outside the deployment subscription"
+  type        = string
+  default     = null
+  nullable    = true
+}
+
 variable "monthly_budget_amount" {
   description = "Monthly budget in AUD for Purview resources"
   type        = number

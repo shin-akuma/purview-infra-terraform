@@ -18,7 +18,7 @@ locals {
   ]
 
   # Feature toggles
-  create_private_dns_zones           = true
+  create_private_dns_zones           = false
   create_managed_private_endpoints   = false
   enable_adls_managed_endpoint       = false
   enable_databricks_managed_endpoint = false

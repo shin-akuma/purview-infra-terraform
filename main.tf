@@ -74,6 +74,7 @@ data "azurerm_subnet" "private_endpoint" {
 }
 
 data "azurerm_private_dns_zone" "existing" {
+  provider            = azurerm.hub
   for_each            = var.create_private_dns_zones ? toset([]) : local.private_dns_zone_names
   name                = each.key
   resource_group_name = var.existing_private_dns_zone_resource_group_name

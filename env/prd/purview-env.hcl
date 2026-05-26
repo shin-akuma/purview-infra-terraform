@@ -18,6 +18,7 @@ locals {
   log_analytics_workspace_resource_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-monitoring-prod/providers/Microsoft.OperationalInsights/workspaces/law-jason-prod"
   adls_storage_account_resource_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-data-prod/providers/Microsoft.Storage/storageAccounts/stjasondatalakeprod"
   databricks_workspace_resource_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-data-prod/providers/Microsoft.Databricks/workspaces/dbw-jason-prod"
+  existing_private_dns_zone_subscription_id    = "11111111-1111-1111-1111-111111111111" # replace with hub subscription ID
   existing_private_dns_zone_resource_group_name = "rg-network-prod"
 
   # Environment-specific tags
