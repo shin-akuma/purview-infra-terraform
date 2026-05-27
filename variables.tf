@@ -106,6 +106,12 @@ variable "monthly_budget_amount" {
   default     = 2000
 }
 
+variable "enable_purview_budget" {
+  description = "Whether to create the Purview monthly budget"
+  type        = bool
+  default     = true
+}
+
 variable "budget_start_date" {
   description = "Start date for the monthly budget (ISO 8601, first day of the month e.g. 2026-06-01T00:00:00Z)"
   type        = string

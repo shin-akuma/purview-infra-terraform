@@ -34,6 +34,7 @@ locals {
   create_managed_private_endpoints            = local.common_vars.locals.create_managed_private_endpoints
   enable_adls_managed_endpoint                = local.common_vars.locals.enable_adls_managed_endpoint
   enable_databricks_managed_endpoint          = local.common_vars.locals.enable_databricks_managed_endpoint
+  enable_purview_budget                       = local.common_vars.locals.enable_purview_budget
   monthly_budget_amount                       = local.common_vars.locals.monthly_budget_amount
   budget_start_date                           = local.common_vars.locals.budget_start_date
   alert_email_addresses                       = local.common_vars.locals.alert_email_addresses
@@ -59,6 +60,7 @@ inputs = {
   create_managed_private_endpoints             = local.create_managed_private_endpoints
   enable_adls_managed_endpoint                 = local.enable_adls_managed_endpoint
   enable_databricks_managed_endpoint           = local.enable_databricks_managed_endpoint
+  enable_purview_budget                        = local.enable_purview_budget
   monthly_budget_amount                        = local.monthly_budget_amount
   budget_start_date                            = local.budget_start_date
   alert_email_addresses                        = local.alert_email_addresses

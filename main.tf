@@ -354,6 +354,7 @@ resource "azurerm_role_assignment" "purview_databricks_reader" {
 }
 
 module "purview_budget" {
+  count  = var.enable_purview_budget ? 1 : 0
   source = "git::ssh://git@github.com/shin-akuma/infra-modules-terraform.git//modules/cost-management/budgets?ref=main"
 
   name              = "budget-purview-${var.environment}-monthly"

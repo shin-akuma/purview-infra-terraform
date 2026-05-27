@@ -10,6 +10,7 @@ locals {
   private_endpoint_subnet_name = "snet-private-endpoints"
 
   # Cost controls
+  enable_purview_budget = true
   monthly_budget_amount = 2000
   budget_start_date     = "2026-05-01T00:00:00Z"
   alert_email_addresses = [
