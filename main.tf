@@ -80,10 +80,16 @@ data "azurerm_private_dns_zone" "existing" {
   resource_group_name = var.existing_private_dns_zone_resource_group_name
 }
 
+resource "azurerm_resource_provider_registration" "purview" {
+  name = "Microsoft.Purview"
+}
+
 resource "azurerm_resource_group" "purview" {
   name     = module.naming_convention_purview.naming_output.resource_group.resource_name
   location = var.location
   tags     = var.tags
+
+  depends_on = [azurerm_resource_provider_registration.purview]
 }
 
 module "purview_account" {
@@ -103,7 +109,7 @@ module "nsg" {
   location            = azurerm_resource_group.purview.location
   resource_group_name = azurerm_resource_group.purview.name
   tags                = var.tags
-  subnet_id           = []
+  subnet_id           = [] # Not attached — privateendpoints-sn is a shared subnet; attach only if a dedicated Purview subnet is provisioned
 
   security_rules = [
     {
