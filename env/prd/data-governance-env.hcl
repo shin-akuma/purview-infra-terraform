@@ -30,8 +30,8 @@ locals {
   budget_start_date     = "2026-05-01T00:00:00Z"
   alert_email_addresses = []
 
-  root_collection_admin_object_ids = [
-    # Get OIDs with: az ad group show --group "<group-name>" --query id -o tsv
+  root_collection_admin_group_names = [
+    # AAD group display name(s) to set as Purview root collection admins
   ]
 
   # Feature toggles

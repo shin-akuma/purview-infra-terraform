@@ -39,7 +39,7 @@ locals {
   budget_start_date                           = local.common_vars.locals.budget_start_date
   alert_email_addresses                       = local.common_vars.locals.alert_email_addresses
   soft_delete_retention_days                  = local.common_vars.locals.soft_delete_retention_days
-  root_collection_admin_object_ids            = local.data_governance_vars.locals.root_collection_admin_object_ids
+  root_collection_admin_group_names           = local.data_governance_vars.locals.root_collection_admin_group_names
   tags                                        = local.data_governance_vars.locals.tags
 }
 
@@ -66,6 +66,6 @@ inputs = {
   budget_start_date                            = local.budget_start_date
   alert_email_addresses                        = local.alert_email_addresses
   soft_delete_retention_days                   = local.soft_delete_retention_days
-  root_collection_admin_object_ids             = local.root_collection_admin_object_ids
+  root_collection_admin_group_names            = local.root_collection_admin_group_names
   tags                                         = local.tags
 }

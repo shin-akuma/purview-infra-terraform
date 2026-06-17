@@ -412,15 +412,20 @@ module "managed_private_endpoints" {
 # --------------------------------------------------------
 # Root collection admins
 # --------------------------------------------------------
+data "azuread_group" "root_collection_admins" {
+  for_each     = toset(var.root_collection_admin_group_names)
+  display_name = each.key
+}
+
 resource "azapi_resource_action" "purview_root_collection_admin" {
-  for_each    = toset(var.root_collection_admin_object_ids)
+  for_each    = data.azuread_group.root_collection_admins
   type        = "Microsoft.Purview/accounts@2021-07-01"
   resource_id = module.purview_account.resource_id
   action      = "addRootCollectionAdmin"
   method      = "POST"
 
   body = {
-    objectId = each.value
+    objectId = each.value.object_id
   }
 
   depends_on = [module.purview_account]
