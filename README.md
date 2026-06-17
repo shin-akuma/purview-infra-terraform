@@ -105,8 +105,8 @@ If you want remote state, uncomment and complete the `backend "azurerm"` block i
 ### 2) Validate
 
 ```bash
-terraform fmt -check -recursive
-terraform validate
+terragrunt hclfmt --terragrunt-check
+terragrunt validate --terragrunt-non-interactive
 ```
 
 ### 3) Plan
@@ -148,7 +148,7 @@ terraform output
 ### Validate Pipeline (`pipelines/validate.yml`)
 
 - Trigger: Pull requests to `main`.
-- Steps: `terraform init -backend=false`, `terraform fmt -check`, `terraform validate`, `terraform plan`.
+- Steps: `terragrunt hclfmt --terragrunt-check`, `terragrunt init --terragrunt-non-interactive -backend=false`, `terragrunt validate --terragrunt-non-interactive`, `terragrunt plan --terragrunt-non-interactive`.
 - Uses Azure DevOps OIDC-based auth environment variables for the AzureRM provider.
 
 ### Deploy Pipeline (`pipelines/deploy.yml`)

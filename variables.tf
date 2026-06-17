@@ -130,6 +130,12 @@ variable "soft_delete_retention_days" {
   default     = 90
 }
 
+variable "root_collection_admin_object_ids" {
+  description = "List of AAD object IDs (users or groups) to assign as Purview root collection admins"
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   description = "Tags applied to all resources"
   type        = map(string)

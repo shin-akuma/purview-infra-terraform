@@ -19,7 +19,9 @@ pool:
 
 variables:
   serviceConnectionName: 'sc-bsup-purview-prod'
-  tfWorkingDir: '$(System.DefaultWorkingDirectory)/infra'
+  tfWorkingDir: '$(System.DefaultWorkingDirectory)/env/prd/data-governance'
+  TF_VERSION: '1.9.0'
+  TG_VERSION: '0.67.16'
   ARM_USE_OIDC: true
 
 stages:
@@ -58,15 +60,22 @@ stages:
                 export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
                 export ARM_USE_OIDC=true
 
+                # Install Terraform
                 if ! command -v terraform &> /dev/null; then
-                  curl -fsSL https://releases.hashicorp.com/terraform/1.9.0/terraform_1.9.0_linux_amd64.zip -o tf.zip
+                  curl -fsSL https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip -o tf.zip
                   unzip tf.zip && sudo mv terraform /usr/local/bin/
                 fi
 
+                # Install Terragrunt
+                if ! command -v terragrunt &> /dev/null; then
+                  curl -fsSL https://github.com/gruntwork-io/terragrunt/releases/download/v$(TG_VERSION)/terragrunt_linux_amd64 -o terragrunt
+                  chmod +x terragrunt && sudo mv terragrunt /usr/local/bin/
+                fi
+
                 cd $(tfWorkingDir)
-                terraform fmt -check -recursive
-                terraform init -backend=false
-                terraform validate
+                terragrunt hclfmt --terragrunt-check --terragrunt-non-interactive
+                terragrunt init --terragrunt-non-interactive -backend=false
+                terragrunt validate --terragrunt-non-interactive
 
   - stage: Plan
     displayName: 'Terraform Plan'
@@ -89,14 +98,21 @@ stages:
                 export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
                 export ARM_USE_OIDC=true
 
+                # Install Terraform
                 if ! command -v terraform &> /dev/null; then
-                  curl -fsSL https://releases.hashicorp.com/terraform/1.9.0/terraform_1.9.0_linux_amd64.zip -o tf.zip
+                  curl -fsSL https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip -o tf.zip
                   unzip tf.zip && sudo mv terraform /usr/local/bin/
                 fi
 
+                # Install Terragrunt
+                if ! command -v terragrunt &> /dev/null; then
+                  curl -fsSL https://github.com/gruntwork-io/terragrunt/releases/download/v$(TG_VERSION)/terragrunt_linux_amd64 -o terragrunt
+                  chmod +x terragrunt && sudo mv terragrunt /usr/local/bin/
+                fi
+
                 cd $(tfWorkingDir)
-                terraform init
-                terraform plan -out=tfplan 2>&1 | tee plan-output.txt
+                terragrunt init --terragrunt-non-interactive
+                terragrunt plan --terragrunt-non-interactive -out=tfplan 2>&1 | tee plan-output.txt
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish plan artifact'
@@ -146,17 +162,24 @@ stages:
                       export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
                       export ARM_USE_OIDC=true
 
+                      # Install Terraform
                       if ! command -v terraform &> /dev/null; then
-                        curl -fsSL https://releases.hashicorp.com/terraform/1.9.0/terraform_1.9.0_linux_amd64.zip -o tf.zip
+                        curl -fsSL https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip -o tf.zip
                         unzip tf.zip && sudo mv terraform /usr/local/bin/
                       fi
 
-                      cd $(tfWorkingDir)
-                      terraform init
-                      terraform apply -auto-approve tfplan 2>&1 | tee apply-output.txt
+                      # Install Terragrunt
+                      if ! command -v terragrunt &> /dev/null; then
+                        curl -fsSL https://github.com/gruntwork-io/terragrunt/releases/download/v$(TG_VERSION)/terragrunt_linux_amd64 -o terragrunt
+                        chmod +x terragrunt && sudo mv terragrunt /usr/local/bin/
+                      fi
 
-                      echo "--- Terraform Outputs ---"
-                      terraform output
+                      cd $(tfWorkingDir)
+                      terragrunt init --terragrunt-non-interactive
+                      terragrunt apply --terragrunt-non-interactive -auto-approve tfplan 2>&1 | tee apply-output.txt
+
+                      echo "--- Terragrunt Outputs ---"
+                      terragrunt output --terragrunt-non-interactive
 
                 - task: PublishPipelineArtifact@1
                   displayName: 'Publish apply output'
